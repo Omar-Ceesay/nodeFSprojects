@@ -9,25 +9,32 @@ exports.copyCat = function(rl){
   //     console.log(file);
   //   });
   // })
+
   var putInDir = function(num, answer){
     file = answer;
     re = /.*(?=\.)/;
     re2 = /[^.]+$/;
     par = file.match(re);
     ex = file.match(re2);
+    fs.open(file, 'r+', function(err, fd){
+      if (err) throw err;
 
-    fs.readFile(file, function(err, data){
+      fs.readFile(file, function(err, data){
 
-      for(i = 1; i < parseInt(num)+1; i++){
-        j = i;
-        t = num;
-        process.stdout.write("Created "+j+"/"+t+"\r");
-        fs.writeFileSync(par[0]+i.toString()+"."+ex, data);
-      }
-      console.log((i-1) + " copies were created");
-      rl.close();
-    })
+        fs.close(fd, function(){});
+        for(i = 1; i < parseInt(num)+1; i++){
+          j = i;
+          t = num;
+          process.stdout.write("Created "+j+"/"+t+"\r");
+          fs.writeFile(par[0]+i.toString()+"."+ex, data, function(err){
+            if (err) throw err;
+          })
+        }
+        console.log((i-1) + " copies were created");
+        rl.close();
+      })
 
+    });
   }
   var putInNewDir = function(num, answer){
     file = answer;
@@ -37,16 +44,31 @@ exports.copyCat = function(rl){
     ex = file.match(re2);
     var dir = __dirname+'/copiesOf-'+file;
     fs.mkdir(dir, 0766, function(err){
-      data = fs.readFileSync(file);
 
-      for(i = 1; i < parseInt(num)+1; i++){
-        j = i;
-        t = num;
-        process.stdout.write("Created "+j+"/"+t+"\r");
-        fs.writeFileSync(__dirname+'/copiesOf-'+file+"/"+par[0]+i.toString()+"."+ex, data);
-      }
-      console.log((i-1) + " copies were created");
-      rl.close();
+      fs.readFile(file, function(err, data){
+        if (num.toString() < 1250) {
+          for(i = 1; i < parseInt(num)+1; i++){
+            j = i;
+            t = num;
+            process.stdout.write("Created "+j+"/"+t+"\r");
+
+            fs.writeFile(__dirname+'/copiesOf-'+file+"/"+par[0]+i.toString()+"."+ex, data, function(err){
+              if (err) throw err;
+            })
+          }
+          console.log((i-1) + " copies were created");
+        }else {
+          for(i = 1; i < parseInt(num)+1; i++){
+            j = i;
+            t = num;
+            process.stdout.write("Created "+j+"/"+t+"\r");
+            fs.writeFileSync(__dirname+'/copiesOf-'+file+"/"+par[0]+i.toString()+"."+ex, data);
+          }
+          console.log((i-1) + " copies were created");
+        }
+
+        rl.close();
+      })
 
     });
   }
