@@ -20,23 +20,39 @@ exports.copyCat = function(rl){
       if (err) throw err;
 
       fs.readFile(file, function(err, data){
+        if(!fs.lstatSync(file).isDirectory()){
+          if (num.toString() < 1250) {
+            console.log("going async");
+            for(i = 1; i < parseInt(num)+1; i++){
+              j = i;
+              t = num;
+              process.stdout.write("Created "+j+"/"+t+"\r");
 
-        fs.close(fd, function(){});
-        for(i = 1; i < parseInt(num)+1; i++){
-          j = i;
-          t = num;
-          process.stdout.write("Created "+j+"/"+t+"\r");
-          fs.writeFile(par[0]+i.toString()+"."+ex, data, function(err){
-            if (err) throw err;
-          })
+              fs.writeFile(par[0]+i.toString()+"."+ex, data, function(err){
+                if (err) throw err;
+              })
+            }
+            console.log((i-1) + " copies were created");
+          }else {
+            for(i = 1; i < parseInt(num)+1; i++){
+              j = i;
+              t = num;
+              process.stdout.write("Created "+j+"/"+t+"\r");
+              fs.writeFileSync(par[0]+i.toString()+"."+ex, data);
+            }
+            console.log((i-1) + " copies were created");
+          }
+        }else if(fs.lstatSync(file).isDirectory()){
+          console.log("No can do... can\'t copy directoties");
         }
-        console.log((i-1) + " copies were created");
+
         rl.close();
       })
 
     });
   }
   var putInNewDir = function(num, answer){
+    timer = Date.now();
     file = answer;
     re = /.*(?=\.)/;
     re2 = /[^.]+$/;
@@ -46,26 +62,32 @@ exports.copyCat = function(rl){
     fs.mkdir(dir, 0766, function(err){
 
       fs.readFile(file, function(err, data){
-        if (num.toString() < 1250) {
-          for(i = 1; i < parseInt(num)+1; i++){
-            j = i;
-            t = num;
-            process.stdout.write("Created "+j+"/"+t+"\r");
+        if(!fs.lstatSync(file).isDirectory()){
+          if (num.toString() < 1250) {
+            for(i = 1; i < parseInt(num)+1; i++){
+              j = i;
+              t = num;
+              process.stdout.write("Created "+j+"/"+t+"\r");
 
-            fs.writeFile(__dirname+'/copiesOf-'+file+"/"+par[0]+i.toString()+"."+ex, data, function(err){
-              if (err) throw err;
-            })
+              fs.writeFile(__dirname+'/copiesOf-'+file+"/"+par[0]+i.toString()+"."+ex, data, function(err){
+                if (err) throw err;
+              })
+            }
+            console.log((i-1) + " copies were created");
+          }else {
+            for(i = 1; i < parseInt(num)+1; i++){
+              j = i;
+              t = num;
+              process.stdout.write("Created "+j+"/"+t+"\r");
+              fs.writeFileSync(__dirname+'/copiesOf-'+file+"/"+par[0]+i.toString()+"."+ex, data);
+            }
+            console.log((i-1) + " copies were created");
           }
-          console.log((i-1) + " copies were created");
-        }else {
-          for(i = 1; i < parseInt(num)+1; i++){
-            j = i;
-            t = num;
-            process.stdout.write("Created "+j+"/"+t+"\r");
-            fs.writeFileSync(__dirname+'/copiesOf-'+file+"/"+par[0]+i.toString()+"."+ex, data);
-          }
-          console.log((i-1) + " copies were created");
+        }else if(fs.lstatSync(file).isDirectory()){
+          console.log("No can do... can\'t copy directoties");
         }
+        endTime = Date.now();
+        console.log(endTime - timer);
 
         rl.close();
       })
@@ -74,7 +96,7 @@ exports.copyCat = function(rl){
   }
   rl.question('What file should I copy?\n', function(answer){
     rl.question(`How many copies of ${answer}\n`, function(num){
-      if(num >= 50){
+      if(num >= 10){
         rl.question(`That's alot of copies, should I put them in a new folder? (yes, no)\n`, function(newDir){
           if(newDir.toLowerCase() == "yes" || newDir.toLowerCase() == "ya" || newDir.toLowerCase() == "sure"){
             putInNewDir(num, answer);
